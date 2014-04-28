@@ -1,0 +1,147 @@
+---
+# The domain to be used as default for components' subdomains.
+# Note: This variable doesn't have a corresponding directive in Prosody, it's
+# just for the Ansible role.
+prosody_domain: example.org
+
+# List of modules to enable.
+# - admin_adhoc   Allows administration via an XMPP client that supports ad-hoc
+#                 commands.
+# - admin_telnet  Opens telnet console interface on localhost port 5582.
+# - announce      Send announcement to all online users.
+# - bosh          Enable BOSH clients, aka "Jabber over HTTP".
+# - compression   Stream compression.
+# - groups        Shared roster support.
+# - http_files    Serve static files from a directory over HTTP.
+# - lastactivity  Support querying for user idle times.
+# - legacyauth    Legacy authentication. Only used by some old clients and bots.
+# - motd          Send a message to users when they log in
+# - pep           Enables users to publish their mood, activity, playing music
+#                 and more.
+# - ping          Replies to XMPP pings with pongs.
+# - privacy       Support privacy lists.
+# - private       Private XML storage (for room bookmarks, etc).
+# - register      Allow users to register on this server using a client and
+#                 change passwords (not recommended to use!).
+# - time          Let others know the time here on this server.
+# - uptime        Report how long server has been running.
+# - vcard         Allow users to set vCards.
+# - version       Replies to server version requests.
+# - watchregistrations  Alert admins of registrations.
+# - welcome       Welcome users who register accounts.
+#
+# The following generally required modules are implicitly enabled:
+#   roster, saslauth, tls, dialback, disco, posix
+prosody_modules_enabled:
+  - private
+  - vcard
+  - privacy
+  - compression
+  - ping
+  - pep
+  - admin_adhoc
+  - admin_telnet
+  - announce
+
+# List of accounts (JIDs) that are admins for the server.
+prosody_admins: []
+
+# Path of the global SSL key.
+prosody_ssl_key: /etc/jabber/certs/localhost.key
+
+# Path of the global SSL certificate.
+prosody_ssl_certificate: /etc/jabber/certs/localhost.crt
+
+# Force clients to use encrypted connections? This option will prevent clients
+# from authenticating unless they are using encryption.
+prosody_c2s_require_encryption: true
+
+# Force certificate authentication for server-to-server connections?
+# This provides ideal security, but requires servers you communicatewith to
+# support encryption AND present valid, trusted certificates.
+# For more information see http://prosody.im/doc/s2s#security
+prosody_s2s_secure_auth: false
+
+# List of the log settings:
+# - dest:  *syslog, *console, or log file path
+#   level: debug, info, warn, or error; can be omited, then it means all levels
+prosody_log:
+  - dest: '*syslog'
+    level: info
+
+# The authentication backend to use globally (can be overriden per-host).
+# - internal_plain:   Use the default built-in backend that stores passwords in
+#                     the configured data store in plaintext.
+# - internal_hashed:  Use a built-in backend that stores passwords in the
+#                     configured data store in a hashed form. Read
+#                     https://prosody.im/doc/modules/mod_auth_internal_hashed.
+# - ldap:             Use a thrid-party module auth_ldap that uses a LDAP
+#                     server to authenticate users. The module must be prior
+#                     installed!
+prosody_auth: internal_plain
+
+# Virtual Hosts
+# - domain:          Domain name of this virtual host.
+#   auth:            The authentication backend to use (overrides global);
+#                    see {{prosody_auth}} for description.
+#   ssl_key:         Path of the SSL key (overrides global).
+#   ssl_certificate: Path of the SSL certificate (overrides global).
+prosody_virtual_hosts:
+  - domain: localhost
+
+#
+# Components
+#
+
+# Whether to enable Multi-user chat component (MUC).
+prosody_muc_enabled: false
+
+# The hostname (domain) of the MUC component.
+prosody_muc_host: conference.{{ prosody_domain }}
+
+# The name of the MUC to return in service discovery responses.
+prosody_muc_name: Chatrooms server on {{ prosody_domain }}
+
+# Restrict creation of new chatrooms on MUC.
+# - admin:  Only the service administrators can create new rooms.
+# - local:  Restricts room creation to users on the service's parent domain,
+#           e.g. user@example.com can create rooms on rooms.example.com.
+# - false:  Anyone can create new chatrooms.
+prosody_muc_restrict_room_creation: local
+
+# Maximum number of history messages that will be sent to the member that has
+# just joined the room. 
+prosody_muc_max_history_messages: 20
+
+
+# Whether to enable proxy65 component, a SOCKS5 bytestream proxy for
+# server-proxied file transfers.
+prosody_proxy65_enabled: false
+
+# The hostname (domain) of the proxy65 component.
+prosody_proxy65_host: proxy.{{ prosody_domain }}
+
+# ACL for the proxy65 component. When specified all users will be denied acces
+# unless in the list. The list can contain domains, bare jids (normal) or full
+# jids (including a resource).
+# Default is to include domains from all virtual hosts.
+prosody_proxy65_acl: "{{ prosody_virtual_hosts | map(attribute='domain') | list }}"
+
+#
+# LDAP authentication
+# These variables are used only when prosody_auth is 'ldap'.
+#
+
+# A space-separated list of hostnames or IPs of LDAP server(s).
+prosody_auth_ldap_server: localhost
+
+# Whether to use TLS when connecting to LDAP.
+prosody_auth_ldap_tls: false
+
+# The LDAP filter used to find the user's DN. You can use variables $user and
+# $host that will be substituted with the user's username and the virtul host
+# name, respectively.
+prosody_auth_ldap_filter: '(&(jabberID=$user@$host)(jabberAccess=TRUE))'
+
+# The base DN where to search for users.
+prosody_auth_ldap_base: 'ou=People,dc=example,dc=org'

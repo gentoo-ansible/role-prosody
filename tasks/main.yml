@@ -1,0 +1,16 @@
+---
+- name: install prosody
+  portage: package=net-im/prosody
+  tags: [install, packages]
+
+- name: configure prosody
+  template: >
+    src=prosody.cfg.lua.j2
+    dest=/etc/jabber/prosody.cfg.lua
+    validate='luac -p %s'
+  notify: reload prosody
+  tags: configure
+
+- name: enable and start prosody
+  service: name=prosody enabled=true state=started
+  tags: services
