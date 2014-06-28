@@ -14,3 +14,10 @@
 - name: enable and start prosody
   service: name=prosody enabled=true state=started
   tags: services
+
+- name: ensure that xmpp-server and xmpp-client ports are open
+  wait_for: >
+    port={{ item }}
+    timeout=10
+  with_items: [5222, 5269]
+  tags: check
